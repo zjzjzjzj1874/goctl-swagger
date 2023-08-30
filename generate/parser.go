@@ -35,7 +35,7 @@ const (
 	defaultTag     = "default"
 )
 
-var skipTags = []string{validateTag, validatorTag, descriptionTag, defaultTag} // 跳过这些保留tag的Key
+var skipTags = []string{validateTag, validatorTag, descriptionTag, defaultTag} // 跳过这些保留tag的Key,以后有新的需要跳过字段往这里面加
 
 func parseRangeOption(option string) (float64, float64, bool) {
 	const str = "\\[([+-]?\\d+(\\.\\d+)?):([+-]?\\d+(\\.\\d+)?)\\]"
@@ -502,7 +502,7 @@ func renderReplyAsDefinition(d swaggerDefinitionsObject, m messageMap, p []spec.
 
 			for _, tag := range member.Tags() {
 				if len(tag.Options) == 0 {
-					if !contains(schema.Required, tag.Name) && (tag.Name != "required" && contains(skipTags, tag.Key)) {
+					if !contains(schema.Required, tag.Name) && (tag.Name != "required" && !contains(skipTags, tag.Key)) {
 						schema.Required = append(schema.Required, tag.Name)
 					}
 					continue
