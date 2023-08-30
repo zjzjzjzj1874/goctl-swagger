@@ -28,6 +28,10 @@ const (
 	optionSeparator = "|"
 	equalToken      = "="
 	atRespDoc       = "@respdoc-"
+
+	validateTag    = "validate"
+	descriptionTag = "description"
+	defaultTag     = "default"
 )
 
 func parseRangeOption(option string) (float64, float64, bool) {
@@ -390,7 +394,10 @@ func renderStruct(member spec.Member) swaggerParameterObject {
 	sp := swaggerParameterObject{In: "query", Type: ftype, Format: format}
 
 	for _, tag := range member.Tags() {
-		sp.Name = tag.Name
+		sp.Name = tag.Key
+		if tag.Key == descriptionTag { // 给备注赋值
+			sp.Description = tag.Name
+		}
 		if len(tag.Options) == 0 {
 			sp.Required = true
 			continue
@@ -492,7 +499,7 @@ func renderReplyAsDefinition(d swaggerDefinitionsObject, m messageMap, p []spec.
 
 			for _, tag := range member.Tags() {
 				if len(tag.Options) == 0 {
-					if !contains(schema.Required, tag.Name) && tag.Name != "required" {
+					if !contains(schema.Required, tag.Name) && (tag.Name != "required" && tag.Key != validateTag && tag.Key != descriptionTag && tag.Key != defaultTag) {
 						schema.Required = append(schema.Required, tag.Name)
 					}
 					continue
@@ -623,6 +630,9 @@ func schemaOfField(member spec.Member) swaggerSchemaObject {
 	ret.Description = comment
 
 	for _, tag := range member.Tags() {
+		if tag.Key == descriptionTag {
+			ret.Description = tag.Name // 给自定义结构体的描述赋值
+		}
 		if len(tag.Options) == 0 {
 			continue
 		}
