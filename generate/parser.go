@@ -30,9 +30,12 @@ const (
 	atRespDoc       = "@respdoc-"
 
 	validateTag    = "validate"
+	validatorTag   = "validator"
 	descriptionTag = "description"
 	defaultTag     = "default"
 )
+
+var skipTags = []string{validateTag, validatorTag, descriptionTag, defaultTag} // 跳过这些保留tag的Key
 
 func parseRangeOption(option string) (float64, float64, bool) {
 	const str = "\\[([+-]?\\d+(\\.\\d+)?):([+-]?\\d+(\\.\\d+)?)\\]"
@@ -499,7 +502,7 @@ func renderReplyAsDefinition(d swaggerDefinitionsObject, m messageMap, p []spec.
 
 			for _, tag := range member.Tags() {
 				if len(tag.Options) == 0 {
-					if !contains(schema.Required, tag.Name) && (tag.Name != "required" && tag.Key != validateTag && tag.Key != descriptionTag && tag.Key != defaultTag) {
+					if !contains(schema.Required, tag.Name) && (tag.Name != "required" && contains(skipTags, tag.Key)) {
 						schema.Required = append(schema.Required, tag.Name)
 					}
 					continue
@@ -631,7 +634,7 @@ func schemaOfField(member spec.Member) swaggerSchemaObject {
 
 	for _, tag := range member.Tags() {
 		if tag.Key == descriptionTag {
-			ret.Description = tag.Name // 给自定义结构体的描述赋值
+			ret.Description = tag.Name // 给自定义结构体的描述赋值,如果有description tag,则用,没有的话使用//后面的作为表示
 		}
 		if len(tag.Options) == 0 {
 			continue
